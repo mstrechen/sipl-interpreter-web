@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+</head>
+<body>
+
+  <section>
+    <div class="container">
+        <div class="row navbar"><h2>Just run your beautiful SIPL program: </h2></div>
+        <div class="row">
+            <div class="col-7">
+                <h5>Program itself: </h5>
+                <textarea id="program" style="min-height: 400px; width: 100%;" class="text-monospace">
+program
+func pow(a, b) = if b = 0 then 1 else a * pow(a, b - 1)
+begin
+    C:= pow(A, B)
+end
+                </textarea>
+            </div>
+            <div class="col-5">
+                <h5>Initial variable values </h5>
+                <textarea id="env" style="min-height: 400px; width: 100%;" class="text-monospace">
+A=2
+B=10
+                </textarea>
+            </div>
+        </div>
+        <div class="row navbar">
+            <input type="button" class="btn btn-primary" id="run" value="RUN!">
+        </div>
+        <div>
+            <h5>Output:</h5>
+            <textarea readonly id="result" class="text-monospace col-12" style="min-height: 150px;"></textarea>
+        </div>
+    </div>
+  </section>
+  <!-- Hack to make bottom navbar not to cover the rest of the content-->
+  <div class="navbar"><br><br></div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-bottom">
+    <div class="container">
+      <a class="navbar-brand" href="https://github.com/MStrechen">By MStrechen</a>
+    </div>
+  </nav>
+    <script>
+        ERROR_MAPPING = {
+            11: "Initial variable values should be a list in the following format:\n" +
+                "<VARIABLE>=<INT VALUE>\n" +
+                "Space after and before the = will lead to the error!\n"
+        };
+        function getErrorText(data){
+            let code = data['error_code'];
+            return  message = ERROR_MAPPING[code] || data['stderr'];
+        }
+
+        $(
+        function () {
+            $('#run').click(() => {
+                $('#run')
+                    .removeClass('btn-primary')
+                    .addClass('btn-info')
+                    .attr('value', 'Loading...');
+
+                let program_text = $('#program').val();
+                let evn_data = $('#env').val();
+                $.ajax({
+                    type: 'POST',
+                    url: '/run',
+                    dataType: 'json',
+                    data: JSON.stringify({
+                        program: program_text,
+                        env: evn_data,
+                    }),
+                    success: (data, status, jqXHR) => {
+                        let ok = data['ok'];
+                        let button = $('#run');
+                        let result = $('#result');
+                        if(!ok){
+                            button
+                                .removeClass('btn-info')
+                                .addClass('btn-danger')
+                                .attr('value', 'Something went wrong');
+                            let errorText = getErrorText(data);
+                            result.val(errorText);
+                            return;
+                        }
+                        button
+                            .removeClass('btn-info')
+                            .addClass('btn-primary')
+                            .attr('value', 'RUN!');
+                        result.val(data['stdout']);
+                    },
+                    error: (data, status, jqXHR) => {
+                        $('#run')
+                            .removeClass('btn-info')
+                            .addClass('btn-danger')
+                            .attr('value', 'Something went wrong');
+                        $('#resu')
+                    }
+                })
+            });
+        }
+        );
+    </script>
+</body>
+</html>
