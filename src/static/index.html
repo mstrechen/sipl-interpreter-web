@@ -3,6 +3,7 @@
 <head>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="js/main-script.js"></script>
 </head>
 <body>
 
@@ -14,7 +15,10 @@
                 <h5>Program itself: </h5>
                 <textarea id="program" style="min-height: 400px; width: 100%;" class="text-monospace">
 program
-func pow(a, b) = if b = 0 then 1 else a * pow(a, b - 1)
+func pow(a, b) =
+   if b = 0
+     then 1
+     else a * pow(a, b - 1)
 begin
     C:= pow(A, B)
 end
@@ -31,9 +35,14 @@ B=10
         <div class="row navbar">
             <input type="button" class="btn btn-primary" id="run" value="RUN!">
         </div>
-        <div>
-            <h5>Output:</h5>
+        <div class="row mb-2">
+            <h5 class="col-12">Output:</h5>
             <textarea readonly id="result" class="text-monospace col-12" style="min-height: 150px;"></textarea>
+        </div>
+        <div class="row mb-2">
+            <h5 class="col-12">Some demos: </h5>
+            <button class="btn btn-light border-dark" onclick="setProgramExample('recursion')">Recursion</button>
+            <button class="btn btn-light border-dark ml-1" onclick="setProgramExample('while_and_if')">While and if</button>
         </div>
     </div>
   </section>
@@ -44,65 +53,5 @@ B=10
       <a class="navbar-brand" href="https://github.com/MStrechen">By MStrechen</a>
     </div>
   </nav>
-    <script>
-        ERROR_MAPPING = {
-            11: "Initial variable values should be a list in the following format:\n" +
-                "<VARIABLE>=<INT VALUE>\n" +
-                "Space after and before the = will lead to the error!\n"
-        };
-        function getErrorText(data){
-            let code = data['error_code'];
-            return  message = ERROR_MAPPING[code] || data['stderr'];
-        }
-
-        $(
-        function () {
-            $('#run').click(() => {
-                $('#run')
-                    .removeClass('btn-primary')
-                    .addClass('btn-info')
-                    .attr('value', 'Loading...');
-
-                let program_text = $('#program').val();
-                let evn_data = $('#env').val();
-                $.ajax({
-                    type: 'POST',
-                    url: '/run',
-                    dataType: 'json',
-                    data: JSON.stringify({
-                        program: program_text,
-                        env: evn_data,
-                    }),
-                    success: (data, status, jqXHR) => {
-                        let ok = data['ok'];
-                        let button = $('#run');
-                        let result = $('#result');
-                        if(!ok){
-                            button
-                                .removeClass('btn-info')
-                                .addClass('btn-danger')
-                                .attr('value', 'Something went wrong');
-                            let errorText = getErrorText(data);
-                            result.val(errorText);
-                            return;
-                        }
-                        button
-                            .removeClass('btn-info')
-                            .addClass('btn-primary')
-                            .attr('value', 'RUN!');
-                        result.val(data['stdout']);
-                    },
-                    error: (data, status, jqXHR) => {
-                        $('#run')
-                            .removeClass('btn-info')
-                            .addClass('btn-danger')
-                            .attr('value', 'Something went wrong');
-                        $('#resu')
-                    }
-                })
-            });
-        }
-        );
-    </script>
 </body>
 </html>

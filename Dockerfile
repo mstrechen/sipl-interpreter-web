@@ -1,7 +1,7 @@
-FROM openjdk:11
+FROM openjdk:13-buster
 
-RUN apt-get upgrade
-RUN apt-get update -y && apt-get install -y python3
+RUN apt upgrade
+RUN apt update -y && apt-get install -y python3
 
 
 WORKDIR /app

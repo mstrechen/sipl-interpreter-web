@@ -1,7 +1,5 @@
 import subprocess
 import json
-from typing import TextIO
-
 
 def run_code(get_args: dict, post_args: dict, body: str):
     body = json.loads(body)
@@ -11,20 +9,26 @@ def run_code(get_args: dict, post_args: dict, body: str):
         text_file.write(program)
     with open('/tmp/env.file', "w") as text_file:
         text_file.write(env)
-    res = subprocess.run([
-        'java',
-        '-jar',
-        '/executable/sipl-interpreter.jar',
-        '-e',
-        '/tmp/env.file',
-        '/tmp/program.sipl'
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        res = subprocess.run([
+            'java',
+            '-jar',
+            '/executable/sipl-interpreter.jar',
+            '-e',
+            '/tmp/env.file',
+            '/tmp/program.sipl'
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=2)
+        retcode = res.returncode
+        stdout = res.stdout.decode('utf8')
+        stderr = res.stderr.decode('utf8')
+    except subprocess.TimeoutExpired:
+        retcode = -1
+        stdout = None
+        stderr = 'Timeout after 2 seconds!'
 
-    stdout = res.stdout.decode('utf8')
-    stderr = res.stderr.decode('utf8')
     return json.dumps({
-        'ok': not bool(res.returncode),
-        'error_code': res.returncode,
+        'ok': not bool(retcode),
+        'error_code': retcode,
         'stdout': stdout,
         'stderr': stderr,
     })
